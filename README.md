@@ -15,7 +15,7 @@ Please see [PROBLEM.md](https://github.com/yarongmu-google/MLSys/blob/main/PROBL
 
 # Submission Categories & Format
 
-We are hosting two distinct tracks to celebrate both systems engineering and AI reasoning. Teams may participate in one or both tracks.
+We are hosting two distinct tracks to celebrate both systems engineering and AI reasoning. Teams may participate in one or both tracks
 
 ## Submission Mechanism
 
