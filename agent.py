@@ -7,6 +7,7 @@ from simulator import Problem, Solution, evaluate
 from dotenv import load_dotenv
 
 load_dotenv()
+keys = os.getenv("GOOGLE_API_KEY").split(",")
 
 
 def format_prompt(problem_json):
@@ -42,7 +43,7 @@ def main():
     start_time = time.time()
     TIMEOUT = 580  # 9 minutes and 40 seconds to be safe before the 10-minute constraint
 
-    api_key = os.environ.get("GOOGLE_API_KEY")
+    api_key = keys[0]
     if not api_key:
         print("Error: GOOGLE_API_KEY environment variable not set.")
         sys.exit(1)
@@ -61,9 +62,11 @@ def main():
 
     history = []
     plateaus = 0
+    i = 0
 
     while time.time() - start_time < TIMEOUT and attempts < max_attempts:
         attempts += 1
+        api_key = keys[i % len(keys)]
         print(f"--- Attempt {attempts} ---", flush=True)
         try:
             print("Sending request to Gemini...", flush=True)
