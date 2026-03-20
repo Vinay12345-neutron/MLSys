@@ -1,2 +1,4 @@
-google-generativeai==0.8.3
-numpy==2.2.0
+numpy
+google-genai
+python-dotenv
+langgraph

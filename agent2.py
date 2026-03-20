@@ -1,7 +1,8 @@
 import os
 import json
 import itertools
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from typing import List, Dict, TypedDict, Optional, Any
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
@@ -9,22 +10,26 @@ from langgraph.graph import StateGraph, END
 # 1. API ROTATION SETUP
 load_dotenv()
 # Fetches keys from .env like GOOGLE_API_KEY=key1,key2,key3
-raw_keys = os.getenv("GOOGLE_API_KEY", "")
-api_keys = [k.strip() for k in raw_keys.split(",") if k.strip()]
-key_cycle = itertools.cycle(api_keys)
+raw_keys = os.getenv("GOOGLE_API_KEY")
+if raw_keys:
+    api_keys = [k.strip() for k in raw_keys.split(",") if k.strip()]
+    key_cycle = itertools.cycle(api_keys)
+else:
+    raise ValueError("GOOGLE_API_KEY not found in environment variables.")
 
 
 def call_gemini_with_rotation(prompt: str):
     """Configures the SDK with the next key and returns a response."""
     current_key = next(key_cycle)
-    genai.configure(api_key=current_key)
 
-    # Using the latest available model as of 2026
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    # Initialize the new Client with the rotated key
+    client = genai.Client(api_key=current_key)
 
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(
+    # Call generate_content using the client object
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+        config=types.GenerateContentConfig(
             temperature=0.1,
             response_mime_type="application/json",  # Ensures structured output
         ),
@@ -111,7 +116,7 @@ class AgentState(TypedDict):
 
 
 def optimizer_node(state: AgentState):
-    """The Brain - Uses google-generativeai directly."""
+    """The Brain - Uses the new google-genai SDK directly."""
     prompt = f"""
     Solve this hardware scheduling problem: {json.dumps(state["graph_spec"])}
     Constraints: Minimize latency, stay under memory capacity.
@@ -125,10 +130,17 @@ def optimizer_node(state: AgentState):
 
     raw_json = call_gemini_with_rotation(prompt)
     try:
-        schedule = json.loads(raw_json)
+        # Gemini might wrap the JSON in markdown blocks (```json ... ```)
+        # Stripping them ensures json.loads doesn't fail
+        clean_json = (
+            raw_json.strip().removeprefix("```json").removesuffix("```").strip()
+        )
+        schedule = json.loads(clean_json)
         return {"current_schedule": schedule, "iterations": state["iterations"] + 1}
-    except:
-        return {"feedback": "Invalid JSON returned. Please retry."}
+    except json.JSONDecodeError:
+        return {
+            "feedback": f"Invalid JSON returned. Raw output: {raw_json}. Please retry."
+        }
 
 
 def validator_node(state: AgentState):

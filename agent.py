@@ -3,11 +3,15 @@ import sys
 import json
 import time
 import requests
-from simulator import Problem, Solution, evaluate
+from simulator import Problem, evaluate
+
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 load_dotenv()
 keys = os.getenv("GOOGLE_API_KEY").split(",")
+client = genai.Client(api_key=keys[0])
 
 
 def format_prompt(problem_json):
@@ -19,17 +23,26 @@ def format_prompt(problem_json):
 
 
 def call_gemini_api(api_key, full_prompt):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
-    headers = {"Content-Type": "application/json"}
-    data = {"contents": [{"parts": [{"text": full_prompt}]}]}
-    response = requests.post(url, headers=headers, json=data, timeout=60)
-    response.raise_for_status()
-    resp_json = response.json()
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=full_prompt,
+        config=types.GenerateContentConfig(
+            # Optional: Use thinking_config for better logic on complex schedules
+            response_mime_type="application/json",
+            thinking_config=types.ThinkingConfig(include_thoughts=True),
+        ),
+    )
 
-    if "candidates" in resp_json and len(resp_json["candidates"]) > 0:
-        return resp_json["candidates"][0]["content"]["parts"][0]["text"]
+    for part in response.candidates[0].content.parts:
+        if part.thought:
+            print("\n--- MODEL THINKING PROCESS ---")
+            print(part.text)
+            print("------------------------------\n")
+
+    if response.text:
+        return response.text
     else:
-        raise Exception(f"Unexpected response format: {resp_json}")
+        raise Exception("Model returned an empty response.")
 
 
 def main():
