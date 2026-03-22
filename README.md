@@ -59,7 +59,7 @@ $ python3 agent.py <path_to_input.json> <path_to_output.json>
   3. **Timeout:** Your agent script is strictly limited to **10 minutes** of execution time per benchmark (including all API calls and local processing).
 * Zip Contents:  
   1. `agent.py`: The entry point script.  
-  2. `requirements.txt`: A list of Python dependencies (e.g., google-generativeai, numpy).  
+  2. `requirements.txt`: A list of Python dependencies (e.g., google-genai, numpy).  
   3. `prompts/`: A folder containing your system prompts, few-shot examples, or agent definitions (required for reproducibility).  
   4. `writeup.pdf`: A short (1-2 page) summary of your prompting strategy and agent architecture.
 
@@ -75,11 +75,11 @@ For Track A (Systems):
 
 For Track B (Agents):
 
-* Free Intelligence: participants are encouraged to use Gemini 1.5 Flash via Google AI Studio. The free tier provides approximately 1,500 requests per day, which is sufficient for developing and testing robust agentic schedulers.
+* Free Intelligence: participants are encouraged to use Gemini 2.5 Flash via Google AI Studio. A free API key can be obtained at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). The free tier is sufficient for developing and testing agentic schedulers.
 
 # Getting Started
 
-To help you get started, we have released a [separate GitHub repository](https://github.com/yarongmu-google/MLSys) containing several C++ files that define the basic problem and solution classes, along with various utilities. You are under no obligation to use these source codes.
+To help you get started, we have released several C++ files in [this repository](https://github.com/yarongmu-google/MLSys) that define the basic problem and solution classes, along with various utilities. You are under no obligation to use these source codes.
 
 | File | Description |
 | :---- | :---- |
